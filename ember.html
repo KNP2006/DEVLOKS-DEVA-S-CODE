@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DEVA’S CODE · Ember — Open-Source Universal AI Agent Platform</title>
+<meta name="description" content="One Agent. Every Model. Every Tool.">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('deva-theme')||(matchMedia('(prefers-color-scheme:light)').matches?'light':'dark')}catch(e){document.documentElement.dataset.theme='dark'}</script>
+<style>
+:root{--bg:#0c0a09;--fg:#f4eee8;--mut:#9a8f87;--line:#2c2622;--card:#171311;--a:#ffb454;--b:#ff5d8f;--ar:255,180,84;--br:255,93,143;--g:linear-gradient(120deg,#ffc15e,#ff7a59 55%,#ff5d8f);--on:#0c0a09;--pc:255,180,84;--ok:#7ee787;--warn:#ffd166;--bad:#ff6b6b;--hl:255,255,255;--sh:rgba(0,0,0,.6);--scrim:rgba(5,5,8,.55);--inset:color-mix(in srgb,var(--bg) 80%,#000);color-scheme:dark}
+[data-theme=light]{--bg:#fbf6f0;--fg:#1d1612;--mut:#6f625a;--line:#e7dccf;--card:#ffffff;--a:#c2410c;--b:#be185d;--ar:194,65,12;--br:190,24,93;--g:linear-gradient(120deg,#ea7a0b,#e5522d 55%,#d61f69);--on:#ffffff;--pc:194,65,12;--ok:#15803d;--warn:#b45309;--bad:#dc2626;--hl:20,16,12;--sh:rgba(60,40,20,.2);--scrim:rgba(240,235,230,.6);--inset:color-mix(in srgb,var(--bg) 93%,var(--fg));color-scheme:light}
+
+
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth;scroll-snap-type:y proximity;background:var(--bg)}
+body{color:var(--fg);font:16px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+.bar{position:fixed;top:0;left:0;height:2px;width:0;background:var(--g);z-index:30}
+.dockwrap{position:fixed;top:14px;left:0;right:0;display:flex;justify-content:center;z-index:20;pointer-events:none}
+.animated-top-dock__nav{pointer-events:auto;display:flex;align-items:flex-start;gap:4px;padding:6px;background:color-mix(in srgb,var(--card) 80%,transparent);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:14px}
+.animated-top-dock__item{--w:0px;--h:0px;--d:0px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:calc(46px + var(--h));padding:0 calc(12px + var(--w)/2);transform:translateY(var(--d));background:transparent;color:var(--mut);border:1px solid transparent;border-radius:9px;font:600 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.08em;cursor:pointer}
+.animated-top-dock__item:hover,.animated-top-dock__item:focus-visible{color:var(--fg);outline:none;border-color:var(--line)}
+.animated-top-dock__item[aria-pressed=true]{color:var(--on);background:var(--g)}
+.animated-top-dock__item svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
+.animated-top-dock__logo{padding:0 8px}.animated-top-dock__logo svg{width:26px;height:26px;stroke:none}
+@media(max-width:640px){.animated-top-dock__link span{display:none}.animated-top-dock__item{padding:0 calc(9px + var(--w)/2)}}
+.s{position:relative;z-index:1;min-height:100vh;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:center;padding:110px max(6vw,22px) 70px;max-width:1180px;margin:auto}
+.rv{opacity:0;transform:translateY(26px);transition:opacity .7s,transform .7s;transition-delay:calc(var(--i,0)*70ms)}
+.in .rv{opacity:1;transform:none}
+.kick{font:600 12px ui-monospace,Menlo,monospace;letter-spacing:.16em;color:var(--a);margin-bottom:14px}
+h1{font-size:clamp(2.6rem,8vw,6.2rem);line-height:.98;letter-spacing:-.04em}
+h2{font-size:clamp(1.8rem,4.4vw,3.2rem);line-height:1.08;letter-spacing:-.03em;margin-bottom:14px}
+h3{font-size:1.02rem;margin-bottom:4px}
+.gt{background:var(--g);-webkit-background-clip:text;background-clip:text;color:transparent}
+p,li{color:var(--txt)}.mut{color:var(--mut)}.big{font-size:clamp(1.1rem,2.2vw,1.55rem);margin-top:18px;color:var(--fg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:18px}
+.c{--mx:50%;--my:50%;position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;overflow:hidden;transition:border-color .3s,transform .3s}
+.c:hover{border-color:var(--line2);transform:translateY(-3px)}
+.c:before{content:"";position:absolute;inset:0;background:radial-gradient(240px circle at var(--mx) var(--my),rgba(var(--ar),0.13),transparent 70%);opacity:0;transition:opacity .3s}
+.c:hover:before{opacity:1}.c>*{position:relative}.c p{font-size:.92rem}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:20px}
+.flow b{font:600 12px ui-monospace,monospace;border:1px solid var(--line);padding:9px 13px;border-radius:9px;background:var(--card);transition:.4s}
+.flow i{color:var(--mut);font-style:normal}
+.flow b.hot{background:var(--g);color:var(--on);border-color:transparent;transform:translateY(-3px)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chip{font:600 12px ui-monospace,monospace;border:1px solid var(--line);border-radius:99px;padding:8px 14px;background:var(--card);color:var(--fg);cursor:pointer;transition:.3s}
+.chip:hover{border-color:var(--a)}.chip.on{background:var(--g);color:var(--on);border-color:transparent}
+.term{margin-top:26px;background:var(--inset);border:1px solid var(--line);border-radius:14px;font:13px/1.7 ui-monospace,Menlo,monospace;padding:16px 18px;min-height:178px;max-width:640px;box-shadow:0 0 60px rgba(var(--ar),0.08)}
+.term .d{color:var(--mut)}.term .k{color:var(--a)}.term .ok{color:var(--ok)}
+.out{margin-top:14px;font:600 13px ui-monospace,monospace;color:var(--a);min-height:22px}
+.node{cursor:pointer;text-align:center}.node.on{border-color:var(--a);box-shadow:0 0 30px rgba(var(--ar),0.13)}
+.arch{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+.arch .full{grid-column:1/-1}
+.info{margin-top:14px;padding:16px;border:1px dashed var(--line2);border-radius:12px;min-height:60px}
+.perm{display:flex;align-items:center;gap:12px;margin-top:10px}
+.perm b{flex:1;font:600 13px ui-monospace,monospace}
+.st{font:700 11px ui-monospace,monospace;width:92px;padding:8px;border-radius:8px;border:1px solid;cursor:pointer;background:none;transition:.3s}
+.st[data-v="0"]{color:var(--ok);border-color:var(--ok)}.st[data-v="1"]{color:var(--warn);border-color:var(--warn)}.st[data-v="2"]{color:var(--bad);border-color:var(--bad)}
+.tl{position:relative;margin-top:18px;padding-left:34px}
+.tl:before,.tl .fill{content:"";position:absolute;left:9px;top:0;bottom:0;width:2px;background:var(--line)}
+.tl .fill{background:var(--g);bottom:auto;height:0}
+.ph{position:relative;margin-bottom:10px;padding:12px 16px}
+.ph:after{content:"";position:absolute;left:-30px;top:18px;width:10px;height:10px;border-radius:50%;background:var(--bg);border:2px solid var(--line);transition:.4s}
+.in .ph:after{border-color:var(--a);background:var(--a)}
+.ph b{color:var(--a);font:700 11px ui-monospace,monospace;letter-spacing:.1em;margin-right:10px}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;min-height:96px;position:relative}
+.tags span{font:600 12px ui-monospace,monospace;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:8px 14px;transition:transform .8s cubic-bezier(.2,.8,.2,1);transform:translate(var(--x),var(--y)) rotate(var(--r))}
+.tags.u span{transform:none;border-color:var(--a)}
+.foot{position:fixed;bottom:16px;right:18px;z-index:20;font:600 11px ui-monospace,monospace;color:var(--mut);letter-spacing:.1em}
+
+.c:not(.node):not(.perm){cursor:pointer}
+.c:not(.node):not(.perm):after{content:"↗";position:absolute;top:12px;right:14px;font-size:12px;color:var(--mut);opacity:0;transition:.3s}
+.c:not(.node):not(.perm):hover:after{opacity:1;color:var(--a)}
+#md{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--scrim);backdrop-filter:blur(6px);opacity:0;visibility:hidden;transition:.35s}
+#md.open{opacity:1;visibility:visible}
+.gl{position:relative;width:min(560px,100%);max-height:84vh;overflow:auto;padding:30px 28px;border-radius:22px;background:linear-gradient(135deg,rgba(var(--hl),0.14),rgba(var(--hl),0.04) 45%,rgba(var(--ar),0.06));backdrop-filter:blur(26px) saturate(1.5);-webkit-backdrop-filter:blur(26px) saturate(1.5);border:1px solid rgba(var(--hl),0.19);box-shadow:0 30px 80px var(--sh),inset 0 1px 0 rgba(var(--hl),0.33),inset 0 0 40px rgba(var(--br),0.08);transform:translateY(24px) scale(.94);transition:transform .45s cubic-bezier(.2,.9,.25,1.15)}
+#md.open .gl{transform:none}
+.gl h3{font-size:1.6rem;letter-spacing:-.02em;margin:6px 0 8px}
+.gl .sub{color:var(--a);font:600 12px ui-monospace,monospace;letter-spacing:.14em}
+.gl p{color:var(--txt2)}.gl ul{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:8px}
+.gl li{padding:10px 14px;border-radius:10px;background:rgba(var(--hl),0.05);border:1px solid rgba(var(--hl),0.09);font-size:.93rem;color:var(--txt2)}
+.gl li:before{content:"▸ ";color:var(--a)}
+.x{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;border:1px solid rgba(var(--hl),0.19);background:rgba(var(--hl),0.07);color:var(--fg);cursor:pointer;font-size:16px}
+.x:hover{background:rgba(var(--hl),0.16)}
+
+body:before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(620px 420px at 88% 8%,rgba(var(--br),0.13),transparent),radial-gradient(520px 420px at 8% 92%,rgba(var(--ar),0.09),transparent)}
+.c:focus-visible{outline:2px solid var(--a);outline-offset:2px}
+.shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:22px}
+.shot{border:1px solid var(--line);border-radius:14px;background:var(--inset);overflow:hidden;box-shadow:0 24px 60px var(--sh);transition:transform .5s}
+.shot:hover{transform:translateY(-5px)}
+.shot .tb{display:flex;gap:6px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);font:11px ui-monospace,monospace;color:var(--mut)}
+.shot .tb i{width:9px;height:9px;border-radius:50%;background:var(--line)}.shot .tb u{margin-left:8px;text-decoration:none;background:var(--inset2);padding:3px 10px;border-radius:6px;flex:1}
+.shot .bd{padding:14px;font:12px/1.75 ui-monospace,monospace;min-height:190px;color:var(--txt)}
+.shot img{display:block;width:100%}
+.shot figcaption{padding:8px 12px;border-top:1px solid var(--line);font:11px system-ui;color:var(--mut)}
+.wb{display:grid;grid-template-columns:84px 1fr;gap:12px}.wb aside{border-right:1px solid var(--line);color:var(--mut);padding-right:8px}
+.bub{background:var(--inset2);border-radius:10px;padding:8px 10px;margin-bottom:8px;font:12px system-ui}.bub.me{background:var(--g);color:var(--on);font-weight:600;margin-left:24px}
+.ok{color:var(--ok)}.d{color:var(--mut)}.k{color:var(--a)}
+.sk{height:8px;border-radius:4px;margin:7px 0;background:linear-gradient(90deg,var(--inset2) 30%,var(--inset3) 50%,var(--inset2) 70%);background-size:200%;animation:sh 1.6s infinite}
+@keyframes sh{to{background-position:-200%}}
+.th{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}.th div{height:46px;border-radius:6px;background:linear-gradient(135deg,rgba(var(--ar),0.13),rgba(var(--br),0.13));border:1px solid var(--line)}
+.fr{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line)}.fr em{font-style:normal;font-size:10px;padding:2px 7px;border-radius:5px;background:rgba(var(--ar),0.11);color:var(--a)}
+.mn{display:flex;align-items:center;justify-content:space-between;margin-top:20px;font:600 11px ui-monospace,monospace;color:var(--mut)}
+.mn button{width:36px;height:32px;border-radius:9px;border:1px solid rgba(var(--hl),0.19);background:rgba(var(--hl),0.07);color:var(--fg);cursor:pointer}
+.mn button:hover{background:rgba(var(--hl),0.16)}
+
+body{counter-reset:sec}.s{counter-increment:sec}
+.hd{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.num{font:800 clamp(2.6rem,6vw,4.2rem)/1 ui-monospace,Menlo,monospace;-webkit-text-stroke:1.5px var(--a);color:transparent;letter-spacing:-.04em}
+.num:before{content:counter(sec,decimal-leading-zero)}
+.kick{display:inline-block;margin:0;padding:7px 15px;border:1px solid rgba(var(--ar),0.40);border-radius:99px;background:rgba(var(--ar),0.10);color:var(--a);font:700 12px ui-monospace,Menlo,monospace;letter-spacing:.16em}
+.s>.kick{margin-bottom:18px;align-self:flex-start}
+h2{font-size:clamp(2.2rem,5.6vw,4.4rem);font-weight:800;line-height:1.02;margin-bottom:18px}
+.plain{max-width:680px;padding:14px 18px;border-left:3px solid var(--a);background:linear-gradient(90deg,rgba(var(--ar),0.09),transparent);border-radius:0 12px 12px 0;margin:4px 0;color:var(--txt2)}
+.plain b{display:block;font:700 10px ui-monospace,monospace;letter-spacing:.16em;color:var(--a);margin-bottom:4px}
+.hint{display:inline-block;margin-top:12px;font:600 12px ui-monospace,monospace;color:var(--mut)}
+.topic{position:fixed;bottom:14px;left:18px;z-index:20;font:700 11px ui-monospace,monospace;letter-spacing:.12em;background:color-mix(in srgb,var(--card) 80%,transparent);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:99px;padding:8px 14px;max-width:60vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.topic:before{content:"● ";color:var(--a)}
+.tags{align-content:flex-start;align-items:flex-start;min-height:150px}
+.hub{flex-basis:100%;max-height:0;opacity:0;overflow:hidden;padding:0 14px;text-align:center;border-radius:12px;background:var(--g);color:var(--on);font:700 13px ui-monospace,monospace;transition:.6s}
+.tags.u .hub{max-height:46px;opacity:1;padding:12px 14px;margin-bottom:6px}
+.c h3{font-size:1.08rem}
+
+/* refined dock */
+.dockwrap{top:16px}
+.animated-top-dock__nav{align-items:center;gap:2px;padding:7px;border-radius:999px;background:color-mix(in srgb,var(--card) 74%,transparent);border:1px solid color-mix(in srgb,var(--fg) 14%,transparent);box-shadow:0 14px 44px var(--sh),inset 0 1px 0 rgba(var(--hl),0.11);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4)}
+.animated-top-dock__item{--s:0;height:54px;min-width:56px;padding:0 15px;gap:5px;border-radius:999px;font:700 10px/1 ui-monospace,Menlo,monospace;letter-spacing:.12em;transform:translateY(calc(var(--d)*-1)) scale(calc(1 + var(--s)*.2));transition:background .3s,color .3s,box-shadow .3s}
+.animated-top-dock__item svg{width:20px;height:20px;stroke-width:1.5}
+.animated-top-dock__item:hover,.animated-top-dock__item:focus-visible{background:color-mix(in srgb,var(--fg) 9%,transparent);border-color:transparent}
+.animated-top-dock__item[aria-pressed=true]{background:var(--g);color:var(--on);box-shadow:0 8px 24px color-mix(in srgb,var(--a) 45%,transparent)}
+.animated-top-dock__logo{padding:0 10px;min-width:48px;margin-right:8px;position:relative}
+.animated-top-dock__logo:after{content:"";position:absolute;right:-6px;top:15px;bottom:15px;width:1px;background:color-mix(in srgb,var(--fg) 16%,transparent)}
+.animated-top-dock__logo[aria-pressed=true]{background:transparent;box-shadow:none}
+.animated-top-dock__logo svg{width:30px;height:30px}
+@media(max-width:640px){.animated-top-dock__item{min-width:44px;padding:0 11px}.animated-top-dock__logo{margin-right:4px}}
+
+html{--txt:color-mix(in srgb,var(--fg) 78%,var(--bg));--txt2:color-mix(in srgb,var(--fg) 92%,var(--bg));--inset2:color-mix(in srgb,var(--fg) 7%,var(--card));--inset3:color-mix(in srgb,var(--fg) 14%,var(--card));--line2:color-mix(in srgb,var(--fg) 24%,var(--bg))}
+.animated-top-dock__logo svg rect{fill:var(--fg)}.animated-top-dock__logo svg path:nth-of-type(1){fill:var(--bg)}.animated-top-dock__logo svg path:nth-of-type(2){fill:var(--fg)}.animated-top-dock__logo svg path:nth-of-type(3){stroke:var(--bg)}
+[data-theme=light] .gl{background:linear-gradient(135deg,#ffffffee,#ffffffb8);border-color:rgba(0,0,0,.12)}
+[data-theme=light] .animated-top-dock__nav{box-shadow:0 12px 36px rgba(60,40,20,.18),inset 0 1px 0 #fff}
+html,body{transition:background .4s,color .4s}
+.tt{position:fixed;top:22px;right:18px;z-index:21;width:42px;height:42px;border-radius:50%;border:1px solid color-mix(in srgb,var(--fg) 16%,transparent);background:color-mix(in srgb,var(--card) 74%,transparent);backdrop-filter:blur(14px);color:var(--fg);font-size:17px;cursor:pointer;transition:transform .3s}
+.tt:hover{transform:rotate(20deg) scale(1.08)}
+.pal{position:fixed;top:30px;left:18px;z-index:21;display:flex;gap:9px}
+.pal a{width:22px;height:22px;border-radius:50%;border:2px solid transparent;box-shadow:0 0 0 1px var(--line);transition:transform .3s}.pal a:hover{transform:scale(1.2)}.pal a.on{border-color:var(--fg)}
+@media(max-width:820px){.pal{display:none}}
+</style></head><body>
+<canvas id="bg"></canvas><nav class="pal" aria-label="Palettes"><a href="ember.html" title="Ember" class="on" style="background:linear-gradient(120deg,#ffc15e,#ff7a59 55%,#ff5d8f)"></a><a href="verdant.html" title="Verdant" style="background:linear-gradient(120deg,#c3ff6e,#3de8a0 52%,#19c7ff)"></a><a href="nebula.html" title="Nebula" style="background:linear-gradient(120deg,#7dd3fc,#818cf8 50%,#e879f9)"></a></nav><button class="tt" id="tt" type="button"></button><div class="bar" id="bar"></div>
+<div class="dockwrap"><nav class="animated-top-dock__nav" id="dock" aria-label="Sections">
+<button class="animated-top-dock__item animated-top-dock__logo" data-dock-item data-t="hero" type="button" aria-label="Home"><svg viewBox="0 0 24 24"><rect width="24" height="24" rx="4.5" fill="#E8E8E3"/><path d="M6 6h8.6L18 9.35v8.15H9.15L6 14.35V6Z" fill="#111"/><path d="M9 9h5.15L15 9.85V15H9.85L9 14.15V9Z" fill="#E8E8E3"/><path d="M12 9v6M9 12h6" stroke="#111" stroke-width=".7"/></svg></button>
+<button class="animated-top-dock__item animated-top-dock__link" data-dock-item data-t="what" type="button"><svg viewBox="0 0 16 16"><rect x="2.25" y="2.25" width="4.5" height="4.5" rx=".8"/><rect x="9.25" y="2.25" width="4.5" height="4.5" rx=".8"/><rect x="2.25" y="9.25" width="4.5" height="4.5" rx=".8"/><rect x="9.25" y="9.25" width="4.5" height="4.5" rx=".8"/></svg><span>OVERVIEW</span></button>
+<button class="animated-top-dock__item animated-top-dock__link" data-dock-item data-t="problem" type="button"><svg viewBox="0 0 16 16"><circle cx="3" cy="8" r="1.5"/><circle cx="12.5" cy="3.5" r="1.5"/><circle cx="12.5" cy="12.5" r="1.5"/><path d="M4.5 7.3 11 4.2M4.5 8.7l6.5 3.1"/></svg><span>PROBLEM</span></button>
+<button class="animated-top-dock__item animated-top-dock__link" data-dock-item data-t="features" type="button"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M2 6h12M5 4.5h.01M7 4.5h.01"/></svg><span>FEATURES</span></button>
+<button class="animated-top-dock__item animated-top-dock__link" data-dock-item data-t="security" type="button"><svg viewBox="0 0 16 16"><circle cx="5.2" cy="6.2" r="2.7"/><path d="m7.2 8.2 5.9 5.1M10.2 10.8l1.5-1.5M12 12.4l1.4-1.4"/></svg><span>SECURITY</span></button>
+<button class="animated-top-dock__item animated-top-dock__link" data-dock-item data-t="roadmap" type="button"><svg viewBox="0 0 16 16"><path d="M4 2.25h5.4L12 4.85v8.9H4z"/><path d="M9.25 2.25V5h2.7M6 8h4M6 10.5h4"/></svg><span>ROADMAP</span></button>
+</nav></div>
+<div class="topic" id="tp"></div><div class="foot" id="cnt"></div>
+<main id="deck"></main>
+<div id="md" role="dialog" aria-modal="true"><div class="gl"><button class="x" aria-label="Close">✕</button><div class="sub" id="ms"></div><h3 id="mt"></h3><p id="mp"></p><ul id="ml"></ul><div class="mn"><button id="pv" aria-label="Previous">←</button><span id="mc2"></span><button id="nx" aria-label="Next">→</button></div></div></div>
+<script>
+const R=(h,i=0)=>`<div class="rv" style="--i:${i}">${h}</div>`;
+const C=(a,x='')=>`<div class="grid">${a.map(([t,d],i)=>`<div class="c rv ${x}" style="--i:${i}"><h3>${t}</h3>${d?`<p>${d}</p>`:''}</div>`).join('')}</div>`;
+const F=(a,id='')=>`<div class="flow rv" ${id?`id="${id}"`:''}>${a.map(x=>`<b>${x}</b>`).join('<i>→</i>')}</div>`;
+const PL={'WHAT IS DEVA’S CODE?':['Think of it as an AI assistant that doesn’t just chat — it plans a job, uses tools and finishes it for you.','👆 Tap any box for details'],
+'THE PROBLEM':['Today you juggle many separate AI tools, each tied to one company and one job. That is slow and limiting.','👆 Press Unify, then tap any box'],
+'OUR SOLUTION & VISION':['DEVA’S CODE puts everything in one place. You give a goal; the agent works through the steps below.'],
+'KEY FEATURES':['The eight building blocks that make the agent useful.','👆 Tap any box for details'],
+'MULTI-MODEL ARCHITECTURE':['An “AI model” is the brain behind the answers. Here you can swap brains freely instead of being tied to one.','👆 Pick a model'],
+'AGENT ARCHITECTURE':['How the pieces fit: clients talk to a server, the server hands work to the Agent Core, which uses models, tools and memory.','👆 Tap a block'],
+'UNIVERSAL FILE INTELLIGENCE':['Give it your files — it reads them, remembers them and answers questions about them.','👆 Pick a file type'],
+'TOOLS, PLUGINS & SKILLS':['Tools are what the agent can do, plugins add new abilities, skills teach it how to do a job well.','👆 Tap any box for details'],
+'WEB + TERMINAL':['Same agent, two ways to use it: a friendly website or a developer command line.','👆 Tap any box for details'],
+'BROWSER & AUTOMATION':['The agent can use a browser like a person: search, open pages, copy facts and write the report.'],
+'SECURITY & CONTROL':['An agent that can act needs rules. You decide what it may read, change, run or send outside.','👆 Tap a state to change it'],
+'DEVELOPMENT ROADMAP':['The build plan, one step at a time. The line fills as you scroll.','👆 Tap a phase for details'],
+'FUTURE VISION':['The long-term goal: a full workspace where AI agents do real work alongside you.','👆 Tap any box for details']};
+const H=(k,t)=>{const p=PL[k]||[];return `<div class="hd rv"><span class="num"></span><span class="kick">${k}</span></div><h2 class="rv">${t}</h2>${p[0]?`<p class="plain rv"><b>IN SIMPLE WORDS</b>${p[0]}</p>`:''}${p[1]?`<div class="hint rv">${p[1]}</div>`:''}`};
+const MODELS={Claude:['OpenRouter','Anthropic'],GPT:['OpenRouter','OpenAI'],DeepSeek:['OpenRouter','DeepSeek API'],Gemini:['Direct API','Google'],Qwen:['Local','Ollama'],Llama:['Local','Self-hosted']};
+const ARCH={'Web Client':'Browser UI for students, researchers and business users.','CLI Client':'Terminal UI for developers, DevOps and power users.','API Server':'One gateway that both clients talk to.','Agent Core':'Understands goals, plans, calls tools, verifies results. One core powers everything.','Models':'AI APIs and local models behind a single model layer.','Tools':'Browser, Terminal, Files, Git, Plugins, MCP.','Memory':'Sessions, projects and knowledge.'};
+const FILES={Documents:'PDF • DOCX • TXT • Markdown',Data:'XLSX • CSV • JSON • XML • SQL',Code:'JS • TS • Python • Java • C/C++ • Go • Rust',Media:'Images • Audio • Video — future support'};
+const PERMS=['READ','MODIFY','EXECUTE','EXTERNAL ACTION'],ST=['ALLOWED','ASK USER','DENIED'];
+const RM=[['Agent Core + CLI + OpenRouter'],['Multi-provider system'],['Web interface'],['File intelligence'],['Browser automation'],['Skills'],['Plugins'],['MCP'],['Application integrations'],['Multi-agent system'],['Advanced model routing + self-hosting']];
+const RM_=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const SH=(n,u,body)=>`<figure class="shot rv" data-n="${n}"><div class="tb"><i></i><i></i><i></i><u>${u}</u></div><div class="bd">${body}</div><figcaption>Illustrative mockup · drop <code>shots/${n}.png</code> next to index.html to show a real screenshot</figcaption></figure>`;
+const SHW=SH('web','deva.devlok.app',`<div class="wb"><aside>Sessions<br>Projects<br>Knowledge<br>Plugins</aside><div><div class="bub me">Analyze sales.xlsx and draft a summary</div><div class="bub"><span class="ok">✓</span> Parsed 3 sheets<br><span class="ok">✓</span> Extracted key metrics<br><span class="k">◔</span> Writing summary…</div><div class="sk" style="width:90%"></div><div class="sk" style="width:65%"></div></div></div>`);
+const SHT=SH('cli','terminal — deva',`<div class="k">$ deva "refactor auth module and run tests"</div><div class="d">› understanding goal</div><div class="d">› git: reading 14 files</div><div>⚠ permission: <span style="color:var(--warn)">EXECUTE npm test</span> — allow? [y/N]</div><div class="ok">✓ 42 tests passed</div><div class="k">▍</div>`);
+const SHB=SH('browser','🔒 research session · 6 tabs',`<div><span class="ok">✓</span> Search the web</div><div><span class="ok">✓</span> Open 6 sources</div><div><span class="k">◔</span> Extract tables &amp; quotes</div><div class="d">○ Compare · Analyze · Generate report</div><div class="th"><div></div><div></div><div></div></div>`);
+const SHF=SH('files','file intelligence',`<div class="fr"><em>PDF</em> report.pdf <span class="d">· parsed · indexed</span></div><div class="fr"><em>XLSX</em> sales.xlsx <span class="d">· 3 sheets</span></div><div class="fr"><em>PY</em> main.py <span class="d">· 214 lines</span></div><div class="fr"><em>SQL</em> schema.sql <span class="d">· 9 tables</span></div><div class="k" style="margin-top:8px">› ask anything about these files…</div>`);
+const S=[
+['hero',`<div class="kick rv">OPEN-SOURCE UNIVERSAL AI AGENT PLATFORM</div><h1 class="rv" style="--i:1">DEVLOK’S<br><span class="gt">DEVA’S CODE</span></h1><p class="big rv" style="--i:2">One Agent. Every Model. Every Tool.</p>${R('<div class="term" id="term"></div>',3)}<p class="plain rv" style="--i:4;margin-top:22px"><b>IN SIMPLE WORDS</b>An AI agent platform where one agent can use any AI model and any tool to actually finish your work. Scroll ↓, use the dock, and tap boxes to explore.</p><p class="mut rv" style="--i:5;margin-top:14px">Presented by DEVLOK</p>`],
+['what',H('WHAT IS DEVA’S CODE?','Not just an AI chatbot.')+R('<p>An open-source AI agent platform designed to:</p>')+C([['🎯 Understand goals'],['🗺 Plan tasks'],['🛠 Use tools'],['📁 Work with files'],['🌐 Browse the web'],['⌨ Execute commands'],['🔗 Connect apps'],['🤖 Use different models'],['⚙ Automate workflows']])+R('<p class="big">One platform. Multiple AI capabilities.</p>')],
+['problem',H('THE PROBLEM','Current AI tools are <span class="gt">fragmented.</span>')+R('<p>Users need different tools for:</p>')+`<div class="tags rv" id="tags"><div class="hub">⬢ DEVA’S CODE — one place for all of it</div>${['Coding','Research','File Analysis','Browser Automation','AI Models','App Integrations','Automation'].map(x=>`<span style="--x:${(Math.random()*120-60|0)}px;--y:${(Math.random()*60-10|0)}px;--r:${(Math.random()*10-5|0)}deg">${x}</span>`).join('')}</div>`+R('<div class="chips"><button class="chip" id="uni">✦ Unify with DEVA’S CODE</button></div>')+C([['🔒 Vendor lock-in','Stuck with one AI company.'],['🎛 Limited model choice','Can’t pick the best brain for each job.'],['🧩 Separate tools per task','A different app for every job.'],['🔧 Limited customization','Hard to adapt to your workflow.'],['🔌 Difficult integrations','Connecting your apps is painful.'],['🛑 Limited control over agent actions','Unclear what the AI is allowed to do.']])],
+['solution',H('OUR SOLUTION & VISION','Introducing <span class="gt">DEVA’S CODE</span>')+R('<p>One open platform: AI Models · Agent Intelligence · Tools · Files · Browser · Plugins · Skills · Applications · Automation — all connected through one Agent Core.</p>')+R('<p class="big">“One Agent. Every Model. Every Tool.” The user simply provides a goal.</p>')+F(['USER','DEVA’S CODE','UNDERSTAND','PLAN','USE TOOLS','EXECUTE','VERIFY','RESULT'],'vf')],
+['features',H('KEY FEATURES','Core Features')+C([['🧠 AI Agent','Understands goals and performs multi-step tasks.'],['🤖 Multi-Model','Supports multiple AI providers and models.'],['💻 Web + Terminal','One Agent Core with two interfaces.'],['📁 File Intelligence','Analyze documents, spreadsheets, images and code.'],['🌐 Web Browsing','Search, research and browser automation.'],['🔌 Plugins','Extend the platform with new capabilities.'],['🧩 Skills','Specialized knowledge and workflows.'],['🔗 Integrations','Connect external apps and services.']])],
+['models',H('MULTI-MODEL ARCHITECTURE','Freedom of <span class="gt">model choice</span>')+R('<p>Prioritizes OpenRouter while supporting direct APIs and local models. Pick a model:</p>')+`<div class="chips rv" id="mc">${Object.keys(MODELS).map((m,i)=>`<button class="chip${i?'':' on'}">${m}</button>`).join('')}</div><div class="out rv" id="mo"></div>`+R('<p class="big">Goal: no mandatory AI vendor lock-in.</p>')],
+['arch',H('AGENT ARCHITECTURE','One Agent Core powers everything.')+R('<p class="mut">Tap a block to explore.</p>')+`<div class="arch" id="ar">${['Web Client','CLI Client','API Server'].map((n,i)=>`<div class="c node rv ${i==2?'full':''}" style="--i:${i}"><h3>${n}</h3></div>`).join('')}<div class="c node full rv on"><h3>Agent Core</h3></div>${['Models','Tools','Memory'].map(n=>`<div class="c node rv"><h3>${n}</h3></div>`).join('')}</div><div class="info rv" id="ai">${ARCH['Agent Core']}</div>`],
+['files',H('UNIVERSAL FILE INTELLIGENCE','Upload. Analyze. Understand.')+`<div class="chips rv" id="fc">${Object.keys(FILES).map((m,i)=>`<button class="chip${i?'':' on'}">${m}</button>`).join('')}</div><div class="info rv" id="fo">${FILES.Documents}</div>`+F(['UPLOAD','DETECT','PARSE','EXTRACT','INDEX','RETRIEVE','ANALYZE'],'ff')+`<div class="shots">${SHF}</div>`],
+['ext',H('TOOLS, PLUGINS & SKILLS','Make the agent <span class="gt">extensible.</span>')+C([['🛠 Tools','Terminal • Files • Browser • Git • Search • Code execution'],['🔌 Plugins','GitHub Plugin → Search Repository, Create Issue, Create Pull Request'],['🧩 Skills','React • Cybersecurity • Research • PDF Analysis']])],
+['iface',H('WEB + TERMINAL','One Agent. Two interfaces.')+C([['🌐 Web Interface','Students • Researchers • Business users • General users'],['⌨ Terminal Interface','Developers • DevOps • Power users • Automation']])+R('<p class="big">Both use the same Agent Core.</p>')+`<div class="shots">${SHW}${SHT}</div>`],
+['browser',H('BROWSER & AUTOMATION','From answering to <span class="gt">acting.</span>')+R('<p>Search websites · Navigate · Click · Type · Extract · Screenshots · Automate workflows</p><p class="mut" style="margin-top:8px">“Research the latest information from multiple sources and prepare a report.”</p>')+F(['Search','Open Sources','Extract','Compare','Analyze','Generate Report'],'bf')+`<div class="shots">${SHB}</div>`],
+['security',H('SECURITY & CONTROL','Powerful agents need <span class="gt">strong controls.</span>')+R('<p>Tap a state to cycle Allowed → Ask → Denied for each operation.</p>')+PERMS.map((p,i)=>`<div class="perm c rv" style="--i:${i}"><b>${p}</b><button class="st" data-v="${i==3?1:0}">${ST[i==3?1:0]}</button></div>`).join('')+R('<p class="mut" style="margin-top:14px">Workspace isolation · Sandboxing · API key protection · Audit logs · Secure file handling</p>')],
+['roadmap',H('DEVELOPMENT ROADMAP','From Agent to <span class="gt">Platform</span>')+`<div class="tl" id="tl"><div class="fill" id="fill"></div>${RM.map(([t],i)=>`<div class="c ph rv" style="--i:${i%3}"><b>PHASE ${i+1}</b>${t}</div>`).join('')}</div>`],
+['future',H('FUTURE VISION','From AI Assistant → <span class="gt">AI Operating Environment</span>')+C([['CODING','→ Files'],['RESEARCH','→ Browser'],['AUTOMATION','→ Apps']])+F(['AI AGENTS','DIGITAL WORKSPACE'])+R('<p class="big">An open ecosystem where Models + Agents + Tools + Skills + Plugins + Applications work together under user control.</p>')],
+['end',`<h1 class="rv">One Agent.<br>Every Model.<br><span class="gt">Every Tool.</span></h1><p class="big rv" style="--i:1;font-weight:700">Open. Extensible. Intelligent.</p><p class="mut rv" style="--i:2;margin-top:22px">Built by DEVLOK<br>The goal is not to build another chatbot. The goal is to build an open environment where AI can actually work.</p><div class="chips rv" style="--i:3"><button class="chip" onclick="scrollTo({top:0})">↑ Back to start</button></div>`]];
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+$('#deck').innerHTML=S.map(([id,h])=>`<section class="s" id="${id}">${h}</section>`).join('');
+const secs=$$('.s'),items=$$('[data-dock-item]');
+/* reveal + active dock */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');cur=secs.indexOf(e.target);mark();['vf','ff','bf'].forEach(id=>{const f=e.target.querySelector('#'+id);if(f)seq(f)})}}),{threshold:.35});
+secs.forEach(s=>io.observe(s));let cur=0;
+function mark(){let a=0;items.forEach((b,i)=>{if(secs.findIndex(s=>s.id==b.dataset.t)<=cur)a=i});items.forEach((b,i)=>b.setAttribute('aria-pressed',i==a));$('#tp').textContent=(secs[cur].querySelector('.kick')||{textContent:'THE END'}).textContent;$('#cnt').textContent=String(cur+1).padStart(2,'0')+' / '+secs.length}
+items.forEach(b=>b.onclick=()=>document.getElementById(b.dataset.t).scrollIntoView({behavior:'smooth'}));
+addEventListener('keydown',e=>{if(e.key=='ArrowRight'||e.key=='ArrowLeft'){secs[Math.max(0,Math.min(secs.length-1,cur+(e.key=='ArrowRight'?1:-1)))].scrollIntoView({behavior:'smooth'})}});
+addEventListener('scroll',()=>{const h=document.documentElement;$('#bar').style.width=scrollY/(h.scrollHeight-innerHeight)*100+'%';const t=$('#tl'),r=t.getBoundingClientRect();$('#fill').style.height=Math.max(0,Math.min(r.height,innerHeight*.6-r.top))+'px'},{passive:true});
+/* flow highlight sequence */
+function seq(f){const b=[...f.querySelectorAll('b')];b.forEach(x=>x.classList.remove('hot'));b.forEach((x,i)=>setTimeout(()=>x.classList.add('hot'),i*260))}
+/* spotlight cards */
+document.addEventListener('pointermove',e=>{const c=e.target.closest&&e.target.closest('.c');if(c){const r=c.getBoundingClientRect();c.style.setProperty('--mx',e.clientX-r.left+'px');c.style.setProperty('--my',e.clientY-r.top+'px')}});
+/* widgets */
+$('#uni').onclick=e=>{const u=$('#tags').classList.toggle('u');e.target.textContent=u?'↺ Fragment again':'✦ Unify with DEVA’S CODE'};
+function pick(box,fn){$(box).onclick=e=>{const b=e.target.closest('.chip');if(!b)return;$$(box+' .chip').forEach(x=>x.classList.toggle('on',x==b));fn(b.textContent)}}
+const mo=m=>$('#mo').textContent=`› route: DEVA’S CODE → ${MODELS[m][0]} → ${MODELS[m][1]} (${m})`;mo('Claude');pick('#mc',mo);
+pick('#fc',m=>$('#fo').textContent=FILES[m]);
+$('#ar').onclick=e=>{const n=e.target.closest('.node');if(!n)return;$$('.node').forEach(x=>x.classList.toggle('on',x==n));$('#ai').textContent=ARCH[n.textContent.trim()]};
+$$('.st').forEach(b=>b.onclick=()=>{const v=(+b.dataset.v+1)%3;b.dataset.v=v;b.textContent=ST[v]});
+/* hero terminal */
+const T=[['k','$ deva "research EV trends and write a report"'],['d','› understanding goal…'],['d','› planning 4 steps'],['d','› browser: opening 6 sources'],['d','› files: extracting tables'],['ok','✓ verified · report.md ready']];
+(function run(){const t=$('#term');t.innerHTML='';T.forEach(([c,s],i)=>setTimeout(()=>t.insertAdjacentHTML('beforeend',`<div class="${c}">${s}</div>`),i*900));setTimeout(run,T.length*900+3000)})();
+/* animated top dock: proximity spring (port of AnimatedTopDock sable) */
+const O={proximity:122,spring:.19,damping:.7,widthGrowth:17,heightGrowth:16,drop:3.5};
+if(matchMedia('(prefers-reduced-motion:reduce)').matches)O.widthGrowth=O.heightGrowth=O.drop=0;
+const st=items.map(()=>({s:0,v:0}));let px=null,py=null,raf=0;
+function tick(){let live=false;items.forEach((b,i)=>{const r=b.getBoundingClientRect(),o=st[i];let t=0;if(px!==null)t=Math.pow(Math.max(0,1-Math.hypot(px-(r.left+r.width/2),py-(r.top+r.height/2))/O.proximity),2);o.v=(o.v+(t-o.s)*O.spring)*O.damping;o.s+=o.v;if(Math.abs(o.v)>.0005||Math.abs(o.s-t)>.002)live=true;b.style.setProperty('--w',o.s*O.widthGrowth+'px');b.style.setProperty('--h',o.s*O.heightGrowth+'px');b.style.setProperty('--d',o.s*O.drop+'px');b.style.setProperty('--s',o.s)});raf=live||px!==null?requestAnimationFrame(tick):0}
+const dk=$('#dock');dk.addEventListener('pointermove',e=>{px=e.clientX;py=e.clientY;if(!raf)raf=requestAnimationFrame(tick)});dk.addEventListener('pointerleave',()=>{px=null;if(!raf)raf=requestAnimationFrame(tick)});
+/* network background */
+let PC='255,180,84';const setPC=()=>{PC=getComputedStyle(document.documentElement).getPropertyValue('--pc').trim()||PC};setPC();
+(function(){const c=$('#bg'),x=c.getContext('2d');let w,h,P=[],m={x:-999,y:-999};const rs=()=>{w=c.width=innerWidth;h=c.height=innerHeight;P=Array.from({length:Math.min(70,w*h/18000|0)},()=>({x:Math.random()*w,y:Math.random()*h,vx:Math.random()-.5,vy:Math.random()-.5}))};rs();addEventListener('resize',rs);addEventListener('pointermove',e=>{m.x=e.clientX;m.y=e.clientY});
+(function f(){x.clearRect(0,0,w,h);P.forEach((p,i)=>{p.x=(p.x+p.vx*.4+w)%w;p.y=(p.y+p.vy*.4+h)%h;const dm=Math.hypot(p.x-m.x,p.y-m.y);if(dm<140){p.x+=(p.x-m.x)/dm*1.2;p.y+=(p.y-m.y)/dm*1.2}x.fillStyle='rgba('+PC+',.55)';x.fillRect(p.x,p.y,2,2);for(let j=i+1;j<P.length;j++){const q=P[j],d=Math.hypot(p.x-q.x,p.y-q.y);if(d<120){x.strokeStyle=`rgba(${PC},${(1-d/120)*.16})`;x.beginPath();x.moveTo(p.x,p.y);x.lineTo(q.x,q.y);x.stroke()}}});if(!RM_)requestAnimationFrame(f)})()})();
+
+/* glass detail cards */
+const D={
+'Understand goals':'The agent turns a plain-language goal into a clear objective before acting.|Reads your request, files and context together|Asks for clarification only when it truly needs it|Defines what "done" looks like so the result can be verified',
+'Plan tasks':'Big goals are broken into ordered, checkable steps.|Builds a step-by-step plan before execution|Chooses which tools and models each step needs|Adjusts the plan when a step fails or new info appears',
+'Use tools':'The agent can act, not just answer, through a set of built-in tools.|Terminal, files, browser, Git, search and code execution|Every tool call passes through the permission system|Extendable with plugins and MCP',
+'Work with files':'Upload documents, data and code and the agent can read and reason over them.|PDF, DOCX, spreadsheets, JSON, SQL and source code|Content is parsed, indexed and retrieved when relevant|Images, audio and video planned for later',
+'Browse the web':'Research current information instead of relying on stale knowledge.|Search, open and compare multiple sources|Extract the key facts and take screenshots|Summarize findings into a report',
+'Execute commands':'Run real commands in a controlled environment to build, test and automate.|Runs inside a sandboxed workspace|Risky commands need your approval|Outputs are read back to verify the result',
+'Connect apps':'Link the agent to the apps and services you already use.|Delivered through plugins and integrations|Example: a GitHub plugin that searches repos and opens issues and pull requests|Access is granted per app, under your control',
+'Use different models':'Pick the best model for each job without changing tools.|OpenRouter first, plus direct APIs and local models|Switch between Claude, GPT, DeepSeek, Qwen, Llama and others|Avoids dependence on a single vendor',
+'Automate workflows':'Repeatable multi-step jobs can run with minimal supervision.|Chains search, extraction, analysis and report generation|Combines tools, skills and integrations|Keeps a verification step before returning results',
+'Vendor lock-in':'Depending on one AI provider limits your freedom.|Pricing, limits and policy changes become your problem|Switching later means rebuilding your workflow|DEVA’S CODE keeps the model layer swappable',
+'Limited model choice':'Most tools give you one or two models, even when others fit the task better.|Different models are better at code, reasoning or speed|You can’t easily compare or mix them|A unified model layer fixes this',
+'Separate tools per task':'Coding, research, file analysis and automation usually live in different apps.|Constant context switching|Work and data get duplicated across tools|One Agent Core handles all of it',
+'Limited customization':'Closed tools rarely let you change how the agent behaves.|Hard to add specialised knowledge|Little control over workflows|Open source plus skills and plugins make it adaptable',
+'Difficult integrations':'Connecting an AI tool to your real apps is often painful or unsupported.|Custom glue code for every service|Fragile and hard to maintain|Plugins and MCP standardise this',
+'Limited control over agent actions':'When an agent can act, you need to decide what it may do.|Unclear what the agent will run or change|Hard to audit what happened|Permissions, sandboxing and audit logs give you control',
+'AI Agent':'The brain of the platform, built to complete multi-step tasks.|Understand → plan → use tools → execute → verify|One Agent Core powers both web and terminal|Works across models and tools',
+'Multi-Model':'Support for many providers and models behind one interface.|OpenRouter as the primary route|Direct APIs such as OpenAI, Google, Anthropic and DeepSeek|Local models such as Qwen and Llama',
+'Web + Terminal':'Two interfaces, one agent.|Web for students, researchers and business users|CLI for developers, DevOps and power users|Same Agent Core, so behaviour stays consistent',
+'File Intelligence':'Upload, detect, parse, extract, index, retrieve, analyze.|Documents, data and code supported|Media (images, audio, video) planned|Retrieval keeps large files usable',
+'Web Browsing':'Search, research and browser automation in one feature.|Navigate, click and type on pages|Extract information and take screenshots|Compare sources before reporting',
+'Plugins':'Add new capabilities without changing the core.|Example: a GitHub plugin with Search Repository, Create Issue and Create Pull Request|Installed per user or workspace|Subject to the permission system',
+'Skills':'Skills teach the agent specialised workflows and knowledge.|Examples: React, Cybersecurity, Research, PDF Analysis|Loaded when a task needs them|Easy to write and share',
+'Integrations':'Connect external applications and services to the agent.|Planned for Phase 9, building on plugins and MCP|Lets the agent work where your data lives|Each connection is permissioned',
+'Tools':'The agent’s hands.|Terminal, Files, Browser, Git, Search, Code execution|Called by the Agent Core as needed|Gated by Read, Modify, Execute and External Action permissions',
+'Web Interface':'A friendly browser UI for people who don’t live in a terminal.|Students, researchers, business users, general users|Same capabilities as the CLI|Planned for Phase 3',
+'Terminal Interface':'A fast, scriptable interface for technical users.|Developers, DevOps, power users|Great for automation and pipelines|Ships first, in Phase 1',
+'CODING':'Write, edit and test code with the agent.|Works with files, Git and the terminal|Skills like React or Cybersecurity add domain knowledge',
+'RESEARCH':'Gather and synthesize information from many sources.|Uses the browser and file analysis|Produces comparable, source-backed reports',
+'AUTOMATION':'Hand repetitive work to AI agents.|Connects to apps through plugins and integrations|Runs multi-step workflows with verification',
+'Phase 1':'Agent Core + CLI + OpenRouter|The foundation: the core loop, a terminal interface and model access through OpenRouter',
+'Phase 2':'Multi-provider system|Add direct provider APIs and local models beside OpenRouter',
+'Phase 3':'Web interface|A browser client on top of the same Agent Core',
+'Phase 4':'File intelligence|Upload, parse, index and retrieve documents, data and code',
+'Phase 5':'Browser automation|Search, navigate, click, type and extract from websites',
+'Phase 6':'Skills|Specialised knowledge and workflows the agent can load',
+'Phase 7':'Plugins|Installable capabilities such as a GitHub plugin',
+'Phase 8':'MCP|Standard protocol support for connecting external tools',
+'Phase 9':'Application integrations|Connect the agent to external apps and services',
+'Phase 10':'Multi-agent system|Several agents collaborating on larger goals',
+'Phase 11':'Advanced model routing + self-hosting|Smarter model selection and the option to run everything yourself'};
+const md=$('#md');
+function openD(c){const ph=c.classList.contains('ph');let k,t,sub;if(ph){k=c.querySelector('b').textContent.replace('PHASE ','Phase ');t=c.childNodes[1].textContent;sub=c.querySelector('b').textContent}else{t=c.querySelector('h3').textContent.replace(/^[^A-Za-z]+/,'');k=t;sub='DETAILS'}
+const d=(D[k]||'').split('|'),short=!ph&&c.querySelector('p')?c.querySelector('p').textContent:'';
+$('#ms').textContent=sub;$('#mt').textContent=t;$('#mp').textContent=ph?d[0]===t?d[1]:d[0]:(d[0]||short);$('#ml').innerHTML=(ph?d.slice(2):d.slice(1)).map(x=>`<li>${x}</li>`).join('');
+if(ph)$('#mp').textContent=d[1]||'';md.classList.add('open')}
+const CS='.c:not(.node):not(.perm)',ok=c=>c.querySelector('h3')||c.classList.contains('ph');
+$$(CS).forEach(c=>{if(ok(c)){c.tabIndex=0;c.setAttribute('role','button')}});
+let CL=[],ci=0,lf=null;
+function show(i){ci=(i+CL.length)%CL.length;openD(CL[ci]);$('#mc2').textContent=`${ci+1} / ${CL.length}`}
+function closeD(){md.classList.remove('open');document.body.style.overflow='';lf&&lf.focus()}
+document.addEventListener('click',e=>{const c=e.target.closest(CS);if(!c||md.classList.contains('open')||!ok(c))return;lf=c;CL=[...c.closest('section').querySelectorAll(CS)].filter(ok);document.body.style.overflow='hidden';show(CL.indexOf(c));$('.x').focus()});
+md.addEventListener('click',e=>{if(e.target==md||e.target.closest('.x'))closeD()});
+$('#pv').onclick=()=>show(ci-1);$('#nx').onclick=()=>show(ci+1);
+addEventListener('keydown',e=>{if(md.classList.contains('open')){if(e.key=='Escape')closeD();else if(e.key=='ArrowRight')show(ci+1);else if(e.key=='ArrowLeft')show(ci-1);else return;e.preventDefault();e.stopImmediatePropagation()}else if((e.key=='Enter'||e.key==' ')&&e.target.matches&&e.target.matches('.c[role=button]')){e.preventDefault();e.target.click()}},true);
+/* real screenshots override mockups when present */
+$$('.shot[data-n]').forEach(f=>{const im=new Image();im.alt=f.dataset.n+' screenshot';im.onload=()=>{f.querySelector('.bd').replaceWith(im);f.querySelector('figcaption').remove()};im.src='shots/'+f.dataset.n+'.png'});
+
+const tt=$('#tt'),cd=()=>document.documentElement.dataset.theme=='dark';
+const setT=t=>{document.documentElement.dataset.theme=t;try{localStorage.setItem('deva-theme',t)}catch(e){}tt.textContent=t=='dark'?'☀':'☾';tt.setAttribute('aria-label',t=='dark'?'Switch to light theme':'Switch to dark theme');setPC()};
+tt.onclick=()=>setT(cd()?'light':'dark');setT(document.documentElement.dataset.theme);
+mark();
+</script></body></html>
